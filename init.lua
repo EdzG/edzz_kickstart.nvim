@@ -99,7 +99,7 @@ do
   vim.g.maplocalleader = ' '
 
   -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = false
+  vim.g.have_nerd_font = true
 
   -- [[ Setting options ]]
   --  See `:help vim.o`
@@ -110,7 +110,7 @@ do
   vim.o.number = true
   -- You can also add relative line numbers, to help with jumping.
   --  Experiment for yourself to see if you like it!
-  -- vim.o.relativenumber = true
+  vim.o.relativenumber = true
 
   -- Enable mouse mode, can be useful for resizing splits for example!
   vim.o.mouse = 'a'
@@ -188,7 +188,20 @@ do
     underline = { severity = { min = vim.diagnostic.severity.WARN } },
 
     -- Can switch between these as you prefer
-    virtual_text = true, -- Text shows up at the end of the line
+    virtual_text = {
+    source = 'if_many',
+    },
+
+    signs = vim.g.have_nerd_font and {
+      text = {
+        [vim.diagnostic.severity.ERROR] = '󰅚 ',
+        [vim.diagnostic.severity.WARN] = '󰀪 ',
+        [vim.diagnostic.severity.INFO] = '󰋽 ',
+        [vim.diagnostic.severity.HINT] = '󰌶 ',
+      },
+    } or {},
+
+    -- Text shows up at the end of the line
     virtual_lines = false, -- Text shows up underneath the line, with virtual lines
 
     -- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
@@ -386,8 +399,11 @@ do
   vim.pack.add { gh 'folke/tokyonight.nvim' }
   ---@diagnostic disable-next-line: missing-fields
   require('tokyonight').setup {
+    transparent = true,
     styles = {
       comments = { italic = false }, -- Disable italics in comments
+      sidebars = "transparent",
+      floats = "transparent",
     },
   }
 
@@ -395,6 +411,20 @@ do
   -- Like many other themes, this one has different styles, and you could load
   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
   vim.cmd.colorscheme 'tokyonight-night'
+
+  vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+  vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+  vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'none' })
+  vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'none' })  
+  -- Make telescope transparent
+  vim.api.nvim_set_hl(0, "TelescopeNormal", { bg = "none" })
+  vim.api.nvim_set_hl(0, "TelescopeBorder", { bg = "none" })
+  vim.api.nvim_set_hl(0, "TelescopePromptNormal", { bg = "none" })
+  vim.api.nvim_set_hl(0, "TelescopePromptBorder", { bg = "none" })
+  vim.api.nvim_set_hl(0, "TelescopeResultsNormal", { bg = "none" })
+  vim.api.nvim_set_hl(0, "TelescopeResultsBorder", { bg = "none" })
+  vim.api.nvim_set_hl(0, "TelescopePreviewNormal", { bg = "none" })
+  vim.api.nvim_set_hl(0, "TelescopePreviewBorder", { bg = "none" })
 
   -- Highlight todo, notes, etc in comments
   vim.pack.add { gh 'folke/todo-comments.nvim' }
@@ -441,6 +471,16 @@ do
 
   -- ... and there is more!
   --  Check out: https://github.com/nvim-mini/mini.nvim
+
+  --  Personal Plugins
+  vim.pack.add({
+    {
+      src = gh 'iamcco/markdown-preview.nvim',
+      build = function()
+        vim.system({ 'npm', 'install' }, { cwd = 'app' }):wait()
+      end,
+    },
+  })
 end
 
 -- ============================================================
@@ -688,7 +728,26 @@ do
   local servers = {
     -- clangd = {},
     -- gopls = {},
-    -- pyright = {},
+    basedpyright = {
+      settings = {
+        basedpyright = {
+          analysis = {
+            typeCheckingMode = "standard",
+
+            -- Silence the third-party library noise globally
+            reportUnknownVariableType = "none",
+            reportUnknownMemberType = "none",
+            reportUnknownArgumentType = "none",
+            reportAny = "none",
+            reportExplicitAny = "none",
+            reportMissingTypeStubs = "none",
+
+            -- Keep the editor fast by ignoring large directories
+            ignore = { "**/venv", "**/env", "**/data", "**/datasets", "**/runs" },
+          },
+        },
+      },
+    },
     -- rust_analyzer = {},
     --
     -- Some languages (like typescript) have entire language plugins that can be useful:
