@@ -110,10 +110,11 @@ do
   vim.o.number = true
   -- You can also add relative line numbers, to help with jumping.
   --  Experiment for yourself to see if you like it!
-  vim.o.relativenumber = true
-
+  vim.o.relativenumber = false
   -- Enable mouse mode, can be useful for resizing splits for example!
   vim.o.mouse = 'a'
+  -- Defualt border for all floating windows (LSP hover, which-key, etc.)
+  vim.o.winborder = 'rounded'
 
   -- Don't show the mode, since it's already in the status line
   vim.o.showmode = false
@@ -171,7 +172,8 @@ do
   -- instead raise a dialog asking if you wish to save the current file(s)
   -- See `:help 'confirm'`
   vim.o.confirm = true
-
+  -- EdzG used to update a file when it has been updated externally (terminal)
+  vim.o.autoread = true
   -- [[ Basic Keymaps ]]
   --  See `:help vim.keymap.set()`
 
@@ -258,6 +260,7 @@ do
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
     callback = function() vim.hl.on_yank() end,
   })
+  vim.api.nvim_create_autocmd({ 'FocusGained', 'BufEnter', 'CursorHold', 'CursorHoldI' }, { desc = 'Check for external file changes', group = vim.api.nvim_create_augroup('edzg-autoread-checktime', { clear = true }), command = 'checktime', })
 end
 
 -- ============================================================
@@ -320,6 +323,11 @@ do
       if name == 'nvim-treesitter' then
         if not ev.data.active then vim.cmd.packadd 'nvim-treesitter' end
         vim.cmd 'TSUpdate'
+        return
+      end
+      -- EG - adding support for MarkdownPreview
+      if name == 'markdown-preview.nvim' and vim.fn.executable 'npm' == 1 then
+        run_build(name, { 'npm', 'install' }, ev.data.path .. '/app')
         return
       end
     end,
@@ -415,7 +423,8 @@ do
   vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
   vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
   vim.api.nvim_set_hl(0, 'SignColumn', { bg = 'none' })
-  vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'none' })  
+  vim.api.nvim_set_hl(0, 'EndOfBuffer', { bg = 'none' })
+  vim.api.nvim_set_hl(0, 'FloatBorder', {fg = '#7aa2f7', bg = 'none'})
   -- Make telescope transparent
   vim.api.nvim_set_hl(0, "TelescopeNormal", { bg = "none" })
   vim.api.nvim_set_hl(0, "TelescopeBorder", { bg = "none" })
@@ -474,12 +483,7 @@ do
 
   --  Personal Plugins
   vim.pack.add({
-    {
-      src = gh 'iamcco/markdown-preview.nvim',
-      build = function()
-        vim.system({ 'npm', 'install' }, { cwd = 'app' }):wait()
-      end,
-    },
+    { src = gh 'iamcco/markdown-preview.nvim' },
   })
 end
 
@@ -726,7 +730,7 @@ do
   --  See `:help lsp-config` for information about keys and how to configure
   ---@type table<string, vim.lsp.Config>
   local servers = {
-    -- clangd = {},
+    clangd = {},
     -- gopls = {},
     basedpyright = {
       settings = {
@@ -1020,9 +1024,9 @@ do
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug'
-  -- require 'kickstart.plugins.indent_line'
-  -- require 'kickstart.plugins.lint'
-  -- require 'kickstart.plugins.autopairs'
+  require 'kickstart.plugins.indent_line'
+  require 'kickstart.plugins.lint'
+  require 'kickstart.plugins.autopairs'
   -- require 'kickstart.plugins.neo-tree'
   -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
