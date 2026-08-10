@@ -409,12 +409,19 @@ do
   require('tokyonight').setup {
     transparent = true,
     styles = {
-      comments = { italic = false }, -- Disable italics in comments
-      sidebars = "transparent",
-      floats = "transparent",
+      comments = { italic = false },
+      sidebars = 'transparent',
+      floats = 'transparent',
     },
-  }
-
+    on_highlights = function(hl, c)
+      -- Brighter, warmer comments so they read over the wallpaper
+      hl.Comment = { fg = '#8b96c9', italic = false }
+      hl['@comment'] = { fg = '#8b96c9', italic = false }
+      -- Doc comments / lua `---@` annotations
+      hl['@comment.documentation'] = { fg = '#9aa4d4', italic = false }
+      -- Keep the built-in palette handy: c.comment, c.fg_dark, c.blue0, c.dark5
+    end,
+  }  
   -- Load the colorscheme here.
   -- Like many other themes, this one has different styles, and you could load
   -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
